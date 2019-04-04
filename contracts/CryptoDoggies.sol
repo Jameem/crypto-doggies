@@ -15,7 +15,7 @@ contract CryptoDoggies {
 		uint age;
 		string name;
 		byte5 dna;
-	}
+	} 
 
 	Doggy doggy1 = Doggy({
 		age: age,
