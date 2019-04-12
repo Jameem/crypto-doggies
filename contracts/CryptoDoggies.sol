@@ -1,195 +1,319 @@
 pragma solidity ^0.4.18;
 
-import "./AccessControl.sol";
-import "./ERC721.sol";
-import "./SafeMath.sol";
+contract AccessControl {
+    /// @dev The addresses of the accounts (or contracts) that can execute actions within each roles
+    address public ceoAddress;
+    address public cooAddress;
 
-contract DetailedERC721 is ERC721 {
-	function name() public view returns (string _name);
-	function symbol() public view returns (string _symbol);
+    /// @dev Keeps track whether the contract is paused. When that is true, most actions are blocked
+    bool public paused = false;
+
+    /// @dev The AccessControl constructor sets the original C roles of the contract to the sender account
+    function AccessControl() public {
+        ceoAddress = msg.sender;
+        cooAddress = msg.sender;
+    }
+
+    /// @dev Access modifier for CEO-only functionality
+    modifier onlyCEO() {
+        require(msg.sender == ceoAddress);
+        _;
+    }
+
+    /// @dev Access modifier for COO-only functionality
+    modifier onlyCOO() {
+        require(msg.sender == cooAddress);
+        _;
+    }
+
+    /// @dev Access modifier for any CLevel functionality
+    modifier onlyCLevel() {
+        require(msg.sender == ceoAddress || msg.sender == cooAddress);
+        _;
+    }
+
+    /// @dev Assigns a new address to act as the CEO. Only available to the current CEO
+    /// @param _newCEO The address of the new CEO
+    function setCEO(address _newCEO) public onlyCEO {
+        require(_newCEO != address(0));
+        ceoAddress = _newCEO;
+    }
+
+    /// @dev Assigns a new address to act as the COO. Only available to the current CEO
+    /// @param _newCOO The address of the new COO
+    function setCOO(address _newCOO) public onlyCEO {
+        require(_newCOO != address(0));
+        cooAddress = _newCOO;
+    }
+
+    /// @dev Modifier to allow actions only when the contract IS NOT paused
+    modifier whenNotPaused() {
+        require(!paused);
+        _;
+    }
+
+    /// @dev Modifier to allow actions only when the contract IS paused
+    modifier whenPaused {
+        require(paused);
+        _;
+    }
+
+    /// @dev Pause the smart contract. Only can be called by the CEO
+    function pause() public onlyCEO whenNotPaused {
+        paused = true;
+    }
+
+    /// @dev Unpauses the smart contract. Only can be called by the CEO
+    function unpause() public onlyCEO whenPaused {
+        paused = false;
+    }
 }
 
+
+/**
+ * Interface for required functionality in the ERC721 standard
+ * for non-fungible tokens.
+ *
+ * Author: Nadav Hollander (nadav at dharma.io)
+ * https://github.com/dharmaprotocol/NonFungibleToken/blob/master/contracts/ERC721.sol
+ */
+contract ERC721 {
+    // Events
+    event Transfer(address indexed _from, address indexed _to, uint256 _tokenId);
+    event Approval(address indexed _owner, address indexed _approved, uint256 _tokenId);
+
+    /// For querying totalSupply of token.
+    function totalSupply() public view returns (uint256 _totalSupply);
+
+    /// For querying balance of a particular account.
+    /// @param _owner The address for balance query.
+    /// @dev Required for ERC-721 compliance.
+    function balanceOf(address _owner) public view returns (uint256 _balance);
+
+    /// For querying owner of token.
+    /// @param _tokenId The tokenID for owner inquiry.
+    /// @dev Required for ERC-721 compliance.
+    function ownerOf(uint256 _tokenId) public view returns (address _owner);
+
+    /// @notice Grant another address the right to transfer token via takeOwnership() and transferFrom()
+    /// @param _to The address to be granted transfer approval. Pass address(0) to
+    ///  clear all approvals.
+    /// @param _tokenId The ID of the Token that can be transferred if this call succeeds.
+    /// @dev Required for ERC-721 compliance.
+    function approve(address _to, uint256 _tokenId) public;
+
+    // NOT IMPLEMENTED
+    // function getApproved(uint256 _tokenId) public view returns (address _approved);
+
+    /// Third-party initiates transfer of token from address _from to address _to.
+    /// @param _from The address for the token to be transferred from.
+    /// @param _to The address for the token to be transferred to.
+    /// @param _tokenId The ID of the Token that can be transferred if this call succeeds.
+    /// @dev Required for ERC-721 compliance.
+    function transferFrom(address _from, address _to, uint256 _tokenId) public;
+
+    /// Owner initates the transfer of the token to another account.
+    /// @param _to The address of the recipient, can be a user or contract.
+    /// @param _tokenId The ID of the token to transfer.
+    /// @dev Required for ERC-721 compliance.
+    function transfer(address _to, uint256 _tokenId) public;
+
+    ///
+    function implementsERC721() public view returns (bool _implementsERC721);
+
+    // EXTRA
+    /// @notice Allow pre-approved user to take ownership of a token.
+    /// @param _tokenId The ID of the token that can be transferred if this call succeeds.
+    /// @dev Required for ERC-721 compliance.
+    function takeOwnership(uint256 _tokenId) public;
+}
+
+
+contract DetailedERC721 is ERC721 {
+    function name() public view returns (string _name);
+    function symbol() public view returns (string _symbol);
+}
+
+
 contract CryptoDoggies is AccessControl, DetailedERC721 {
-	using SafeMath for uint;
+    using SafeMath for uint256;
 
-	event TokenCreated(uint tokenId, string name, bytes5 dna, uint price, address owner);
+    event TokenCreated(uint256 tokenId, string name, bytes5 dna, uint256 price, address owner);
+    event TokenSold(
+        uint256 indexed tokenId,
+        string name,
+        bytes5 dna,
+        uint256 sellingPrice,
+        uint256 newPrice,
+        address indexed oldOwner,
+        address indexed newOwner
+        );
 
-	event TokenSold(
-		uint indexed tokenId,
-		 string name,
-		 bytes5 dna,
-		 uint sellingPrice,
-		 uint newPrice,
-		 address indexed oldOwner,
-		 address indexed newOwnwe
-	);
+    mapping (uint256 => address) private tokenIdToOwner;
+    mapping (uint256 => uint256) private tokenIdToPrice;
+    mapping (address => uint256) private ownershipTokenCount;
+    mapping (uint256 => address) private tokenIdToApproved;
 
-	mapping (uint => address) private tokenIdToOwner;
-	mapping (uint => uint) private tokenIdToPrice;
-	mapping (uint => uint) private ownershipTokenCount;
-	mapping (uint => address) private tokenIdToApproved;
+    struct Doggy {
+        string name;
+        bytes5 dna;
+    }
 
-	struct Doggy {
-		string name;
-		bytes5 dna;
-	}
+    Doggy[] private doggies;
 
-	Doggy [] private doggies;
+    uint256 private startingPrice = 0.01 ether;
+    bool private erc721Enabled = false;
 
-	uint private startingPrice = 0.01 ether;
-	bool private erc721Enabled = false;
+    modifier onlyERC721() {
+        require(erc721Enabled);
+        _;
+    }
 
-	modifier onlyERC721() {
-		require(erc721Enabled);
-		_;
-	}
+    function createToken(string _name, address _owner, uint256 _price) public onlyCLevel {
+        require(_owner != address(0));
+        require(_price >= startingPrice);
 
-	function createToken(string _name, address _owner, uint _price) public onlyCLevel {
-		require(_owner != address[0]);
-		require(_price >= startingPrice);
+        bytes5 _dna = _generateRandomDna();
+        _createToken(_name, _dna, _owner, _price);
+    }
 
-		bytes5 _dna = _generateRandomDna();
-		_createToken(_name, _dna, _owner, _price);
-	}
+    function createToken(string _name) public onlyCLevel {
+        bytes5 _dna = _generateRandomDna();
+        _createToken(_name, _dna, address(this), startingPrice);
+    }
 
-	function createToken(string _name) public onlyCLevel {
-		bytes5 _dna = _generateRandomDna();
-		_createToken(_name, _dna, address(this), startingPrice);
-	}
+    function _generateRandomDna() private view returns (bytes5) {
+        uint256 lastBlockNumber = block.number - 1;
+        bytes32 hashVal = bytes32(block.blockhash(lastBlockNumber));
+        bytes5 dna = bytes5((hashVal & 0xffffffff) << 216);
+        return dna;
+    }
 
-	function _generateRandomDna() private view returns (bytes5) {
-		uint lastBlockNumber = block.number - 1;
-		bytes32 hashVal = bytes32(block.blockhash(lastBlockNumber));
-		bytes5 dna = bytes5((hashVal & 0xffffffff) << 216);
-		return dna;
-	}
+    function _createToken(string _name, bytes5 _dna, address _owner, uint256 _price) private {
+        Doggy memory _doggy = Doggy({
+            name: _name,
+            dna: _dna
+        });
+        uint256 newTokenId = doggies.push(_doggy) - 1;
+        tokenIdToPrice[newTokenId] = _price;
 
-	function _createToken(string _name, bytes5 _dna, address _owner, uint _price) private {
-		Doggy memory _doggy = Doggy({
-			name: _name,
-			dna: _dna
-		});
-		uint newTokenId = doggies.push(_doggy) - 1;
-		tokenIdToPrice[newTokenId] = _price;
+        TokenCreated(newTokenId, _name, _dna, _price, _owner);
 
-		TokenCreated(newTokenId, _name, _dna, _price, _owner);
+        _transfer(address(0), _owner, newTokenId);
+    }
 
-		_transfer(address(0), _owner, newTokenId);
-	}
+    function getToken(uint256 _tokenId) public view returns (
+        string _tokenName,
+        bytes5 _dna,
+        uint256 _price,
+        uint256 _nextPrice,
+        address _owner
+    ) {
+        _tokenName = doggies[_tokenId].name;
+        _dna = doggies[_tokenId].dna;
+        _price = tokenIdToPrice[_tokenId];
+        _nextPrice = nextPriceOf(_tokenId);
+        _owner = tokenIdToOwner[_tokenId];
+    }
 
-	function getToken(uint _tokenId) public view returns (
-		string _tokenName,
-		bytes5 _dna,
-		uint _price,
-		uint _nextPrice,
-		address _owner
-	) {
-		_tokenName = doggies[_tokenId].name;
-		_dna = doggies[_tokenId].dna;
-		_price = tokenIdToPrice(_tokenId);
-		_nextPrice = nextPriceOf(_tokenId);
-		_owner = tokenIdToOwner[_tokenId];
-	}
+    function getAllTokens() public view returns (
+        uint256[],
+        uint256[],
+        address[]
+    ) {
+        uint256 total = totalSupply();
+        uint256[] memory prices = new uint256[](total);
+        uint256[] memory nextPrices = new uint256[](total);
+        address[] memory owners = new address[](total);
 
-	function getAllTokens() public view returns (
-		uint[],
-		uint[],
-		address[]
-	){
-		uint total = totalSupply();
-		uint memory prices = new uint[](total);
-		uint memory nextPrices = new uint[](total);
-		uint memory owners = new uint[](total);
+        for (uint256 i = 0; i < total; i++) {
+            prices[i] = tokenIdToPrice[i];
+            nextPrices[i] = nextPriceOf(i);
+            owners[i] = tokenIdToOwner[i];
+        }
 
-		for(uint i = 0; i < total; i++) {
-			prices[i] = tokenIdToPrice[i];
-			nextPrices[i] = nextPriceOf(i);
-			owners[i] = tokenIdToOwner[i];
-		}
+        return (prices, nextPrices, owners);
+    }
 
-		return (prices, nextPrices, owners);
-	}
+    function tokensOf(address _owner) public view returns(uint256[]) {
+        uint256 tokenCount = balanceOf(_owner);
+        if (tokenCount == 0) {
+            return new uint256[](0);
+        } else {
+            uint256[] memory result = new uint256[](tokenCount);
+            uint256 total = totalSupply();
+            uint256 resultIndex = 0;
 
-	function tokensOf(address _owner) public view returns(uint[]) {
-		uint tokenCount = balanceOf(_owner);
-		if(tokenCount == 0) {
-			return new uint[](0);
-		} else {
-			uint[] memory result = new uint[](tokenCount);
-			uint total = totalSupply();
-			uint resultIndex = 0;
+            for (uint256 i = 0; i < total; i++) {
+                if (tokenIdToOwner[i] == _owner) {
+                    result[resultIndex] = i;
+                    resultIndex++;
+                }
+            }
+            return result;
+        }
+    }
 
-			for (uint i = 0; i < total; i++) {
-				if(tokenIdToOwner[i] == _owner) {
-					result[resultIndex] = i;
-					resultIndex++;
-				}
-			}
+    function withdrawBalance(address _to, uint256 _amount) public onlyCEO {
+        require(_amount <= this.balance);
 
-			return  result;
-		}
-	}
+        if (_amount == 0) {
+            _amount = this.balance;
+        }
 
-	function withdrawBalance(address _to, uint _amount) public onlyCEO {
-		require(_amount <= this.balance);
+        if (_to == address(0)) {
+            ceoAddress.transfer(_amount);
+        } else {
+            _to.transfer(_amount);
+        }
+    }
 
-		if(_amount == 0) {
-			_amount == this.balance;
-		}
+    function purchase(uint256 _tokenId) public payable whenNotPaused {
+        address oldOwner = ownerOf(_tokenId);
+        address newOwner = msg.sender;
+        uint256 sellingPrice = priceOf(_tokenId);
 
-		if(_to == address[0]) {
-			ceoAddress.transfer(_amount);
-		} else {
-			_to.transfer(_amount);
-		}
-	}
+        require(oldOwner != address(0));
+        require(newOwner != address(0));
+        require(oldOwner != newOwner);
+        require(!_isContract(newOwner));
+        require(sellingPrice > 0);
+        require(msg.value >= sellingPrice);
 
-	function purchase(uint _tokenId) public payable whenNotPaused {
-		address oldOwner = ownerOf(_tokenId);
-	   	address newOwner = msg.sender;
-	   	uint256 sellingPrice = priceOf(_tokenId);
+        _transfer(oldOwner, newOwner, _tokenId);
+        tokenIdToPrice[_tokenId] = nextPriceOf(_tokenId);
+        TokenSold(
+            _tokenId,
+            doggies[_tokenId].name,
+            doggies[_tokenId].dna,
+            sellingPrice,
+            priceOf(_tokenId),
+            oldOwner,
+            newOwner
+        );
 
-	   	require(oldOwner != address(0));
-	   	require(newOwner != address(0));
-	   	require(oldOwner != newOwner);
-	   	require(!_isContract(newOwner));
-	   	require(sellingPrice > 0);
-	   	require(msg.value >= sellingPrice);
+        uint256 excess = msg.value.sub(sellingPrice);
+        uint256 contractCut = sellingPrice.mul(6).div(100); // 6% cut
 
-	   	_transfer(oldOwner, newOwner, _tokenId);
-	   	tokenIdToPrice[_tokenId] = nextPriceOf(_tokenId);
-	   	TokenSold(
-		   	_tokenId,
-		   	doggies[_tokenId].name,
-		   	doggies[_tokenId].dna,
-		   	sellingPrice,
-		   	priceOf(_tokenId),
-		   	oldOwner,
-		   	newOwner
-	   	);
+        if (oldOwner != address(this)) {
+            oldOwner.transfer(sellingPrice.sub(contractCut));
+        }
 
-	   	uint256 excess = msg.value.sub(sellingPrice);
-	   	uint256 contractCut = sellingPrice.mul(6).div(100); // 6% cut
+        if (excess > 0) {
+            newOwner.transfer(excess);
+        }
+    }
 
-	   	if (oldOwner != address(this)) {
-		   	oldOwner.transfer(sellingPrice.sub(contractCut));
-	   	}
-
-	   	if (excess > 0) {
-		   	newOwner.transfer(excess);
-	   	}
-	}
-
-	function priceOf(uint256 _tokenId) public view returns (uint256 _price) {
+    function priceOf(uint256 _tokenId) public view returns (uint256 _price) {
         return tokenIdToPrice[_tokenId];
     }
 
-	uint256 private increaseLimit1 = 0.02 ether;
+    uint256 private increaseLimit1 = 0.02 ether;
     uint256 private increaseLimit2 = 0.5 ether;
     uint256 private increaseLimit3 = 2.0 ether;
     uint256 private increaseLimit4 = 5.0 ether;
 
-	function nextPriceOf(uint256 _tokenId) public view returns (uint256 _nextPrice) {
+    function nextPriceOf(uint256 _tokenId) public view returns (uint256 _nextPrice) {
         uint256 _price = priceOf(_tokenId);
         if (_price < increaseLimit1) {
             return _price.mul(200).div(95);
@@ -204,7 +328,7 @@ contract CryptoDoggies is AccessControl, DetailedERC721 {
         }
     }
 
-	function enableERC721() public onlyCEO {
+    function enableERC721() public onlyCEO {
         erc721Enabled = true;
     }
 
@@ -283,5 +407,47 @@ contract CryptoDoggies is AccessControl, DetailedERC721 {
         assembly { size := extcodesize(addr) }
         return size > 0;
     }
+}
 
+
+library SafeMath {
+
+    /**
+    * @dev Multiplies two numbers, throws on overflow.
+    */
+    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
+        if (a == 0) {
+            return 0;
+        }
+        uint256 c = a * b;
+        assert(c / a == b);
+        return c;
+    }
+
+    /**
+    * @dev Integer division of two numbers, truncating the quotient.
+    */
+    function div(uint256 a, uint256 b) internal pure returns (uint256) {
+        // assert(b > 0); // Solidity automatically throws when dividing by 0
+        uint256 c = a / b;
+        // assert(a == b * c + a % b); // There is no case in which this doesn't hold
+        return c;
+    }
+
+    /**
+    * @dev Substracts two numbers, throws on overflow (i.e. if subtrahend is greater than minuend).
+    */
+    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
+        assert(b <= a);
+        return a - b;
+    }
+
+    /**
+    * @dev Adds two numbers, throws on overflow.
+    */
+    function add(uint256 a, uint256 b) internal pure returns (uint256) {
+        uint256 c = a + b;
+        assert(c >= a);
+        return c;
+    }
 }

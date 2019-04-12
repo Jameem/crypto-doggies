@@ -11,9 +11,15 @@ contract("CryptoDoggies", function(accounts) {
     global[hfn[i]] = helpfulFunctions[hfn[i]];
   }
 
-  checkDoggyCreation(5, "Doggy-5", "0x0f0f0f0f0f");
+  checksTotalSupply(0);
 
-  // for (x = 0; x < 100; x++) {
-  //   checkDoggyCreation(x, "Doggy-" + x, "0x0f0f0f0f0f");
-  // }
+  for (x = 0; x < 100; x++) {
+    checkDoggyCreation("Doggy" + x);
+  }
+
+  for (x = 0; x < 100; x++) {
+    checkDoggyPurchase(x, 0.01);
+  }
+
+  checkWithdrawal(1.0);
 });
