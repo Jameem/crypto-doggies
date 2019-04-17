@@ -55,7 +55,7 @@ function generateDoggyImage(doggyId, size, canvas) {
 
 var App = {
   contracts: {},
-  CryptoDoggiesAddress: "0x383Bf1fD04D0901bbD674A580E0A621FCBb4799b",
+  CryptoDoggiesAddress: "0xC56F2b86943c574F082AeEBF932987758cC637Ce",
 
   init() {
     return App.initWeb3();
@@ -81,6 +81,7 @@ var App = {
       App.contracts.CryptoDoggies.setProvider(web3.currentProvider);
 
       // User our contract to retrieve the adrians that can be bought
+      // console.log(App.contracts);
       return App.loadDoggies();
     });
     return App.bindEvents();
@@ -101,9 +102,12 @@ var App = {
     });
     // Get local address so we don't display our owned items
     var address = web3.eth.defaultAccount;
+
     let contractInstance = App.contracts.CryptoDoggies.at(
       App.CryptoDoggiesAddress
     );
+
+    // console.log(contractInstance.contract);
     return (totalSupply = contractInstance
       .totalSupply()
       .then(supply => {
