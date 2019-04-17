@@ -21,7 +21,7 @@
     "node": "9.11.1"
   },
   "scripts": {
-    "start": "harp server --port $PORT"
+    "start": "harp server --port 8000"
   },
   "devDependencies": {
     "bignumber.js": "^6.0.0",
@@ -37,7 +37,8 @@
   "dependencies": {
     "jsonfile": "^4.0.0",
     "web3": "^0.20.5",
-    "zeppelin-solidity": "^1.7.0"
+    "zeppelin-solidity": "^1.7.0",
+    "harp": "*"
   },
   "directories": {
     "test": "test"
