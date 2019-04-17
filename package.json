@@ -41,6 +41,7 @@
     "test": "test"
   },
   "scripts": {
+    "start": "npm run lite",
     "dev": "lite-server",
     "test": "scripts/test.sh",
     "compile": "truffle compile",
