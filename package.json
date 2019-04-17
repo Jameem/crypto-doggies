@@ -20,9 +20,6 @@
   "engines": {
     "node": "9.11.1"
   },
-  "scripts": {
-    "start": "node server.js"
-  },
   "devDependencies": {
     "bignumber.js": "^6.0.0",
     "dotenv": "^5.0.0",
@@ -37,16 +34,19 @@
   "dependencies": {
     "jsonfile": "^4.0.0",
     "web3": "^0.20.5",
-    "zeppelin-solidity": "^1.7.0"
+    "zeppelin-solidity": "^1.7.0",
+    "lite-server": "^2.3.0"
   },
   "directories": {
     "test": "test"
   },
   "scripts": {
+    "start": "npm run test",
     "dev": "lite-server",
-    "test": "scripts/test.sh",
+    "test": "lite-server",
     "compile": "truffle compile",
     "console": "truffle console",
-    "migrate": "truffle migrate --reset"
+    "migrate": "truffle migrate --reset",
+    "lite": "lite-server"
   }
 }
