@@ -11,12 +11,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/t04glovern/cryptodoggies.git"
+    "url": "git+https://github.com/Jameem/ethereum-doggies"
   },
   "bugs": {
-    "url": "https://github.com/t04glovern/cryptodoggies/issues"
+    "url": "https://github.com/Jameem/ethereum-doggies/issues"
   },
-  "homepage": "https://github.com/t04glovern/cryptodoggies",
+  "homepage": "https://github.com/Jameem/ethereum-doggies",
   "engines": {
     "node": "9.11.1"
   },
