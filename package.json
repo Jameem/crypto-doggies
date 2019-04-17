@@ -34,19 +34,17 @@
   "dependencies": {
     "jsonfile": "^4.0.0",
     "web3": "^0.20.5",
-    "zeppelin-solidity": "^1.7.0",
-    "lite-server": "^2.3.0"
+    "zeppelin-solidity": "^1.7.0"
   },
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "start": "npm run test",
+    "start": "node server.js",
     "dev": "lite-server",
-    "test": "lite-server",
+    "test": "scripts/test.sh",
     "compile": "truffle compile",
     "console": "truffle console",
-    "migrate": "truffle migrate --reset",
-    "lite": "lite-server"
+    "migrate": "truffle migrate --reset"
   }
 }
