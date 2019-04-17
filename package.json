@@ -21,11 +21,7 @@
     "node": "9.11.1"
   },
   "scripts": {
-    "dev": "lite-server",
-    "test": "scripts/test.sh",
-    "compile": "truffle compile",
-    "console": "truffle console",
-    "migrate": "truffle migrate --reset"
+    "start": "node server.js"
   },
   "devDependencies": {
     "bignumber.js": "^6.0.0",
@@ -39,13 +35,18 @@
     "truffle-hdwallet-provider": "0.0.3"
   },
   "dependencies": {
-    "express": "^4.16.4",
-    "harp": "*",
     "jsonfile": "^4.0.0",
     "web3": "^0.20.5",
     "zeppelin-solidity": "^1.7.0"
   },
   "directories": {
     "test": "test"
+  },
+  "scripts": {
+    "dev": "lite-server",
+    "test": "scripts/test.sh",
+    "compile": "truffle compile",
+    "console": "truffle console",
+    "migrate": "truffle migrate --reset"
   }
 }
