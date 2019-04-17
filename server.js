@@ -1,10 +1,16 @@
-var app = require("express")();
-var server = require("http").Server(app);
+var http = require("http");
+var fs = require("fs");
 
-var port = process.env.PORT || 3000;
-app.get("/", function(req, res) {
-  res.sendfile(__dirname + "/index.html");
-});
-app.listen(port, function() {
-  console.log("Node app is running at localhost:" + app.get("port"));
+const PORT = process.env.PORT || 3000;
+
+fs.readFile("./src/index.html", function(err, html) {
+  if (err) throw err;
+
+  http
+    .createServer(function(request, response) {
+      response.writeHeader(200, { "Content-Type": "text/html" });
+      response.write(html);
+      response.end();
+    })
+    .listen(PORT);
 });
