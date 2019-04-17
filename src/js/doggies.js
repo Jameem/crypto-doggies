@@ -204,5 +204,4 @@ var App = {
 
 jQuery(document).ready(function($) {
   App.init();
-  alert();
 });
