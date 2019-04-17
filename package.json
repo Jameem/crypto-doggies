@@ -41,9 +41,10 @@
     "test": "test"
   },
   "scripts": {
-    "start": "npm run lite",
+    "start": "npm run test",
     "dev": "lite-server",
-    "test": "scripts/test.sh",
+    "test": "lite-server",
+    //"test": "scripts/test.sh",
     "compile": "truffle compile",
     "console": "truffle console",
     "migrate": "truffle migrate --reset",
