@@ -46,6 +46,7 @@
     "test": "scripts/test.sh",
     "compile": "truffle compile",
     "console": "truffle console",
-    "migrate": "truffle migrate --reset"
+    "migrate": "truffle migrate --reset",
+    "lite": "lite-server"
   }
 }
