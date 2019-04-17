@@ -29,7 +29,8 @@
     "solc": "^0.4.20",
     "solidity-parser": "^0.4.0",
     "truffle": "^4.1.0",
-    "truffle-hdwallet-provider": "0.0.3"
+    "truffle-hdwallet-provider": "0.0.3",
+    "express": "^4.16.4"
   },
   "dependencies": {
     "express": "^4.16.4",
