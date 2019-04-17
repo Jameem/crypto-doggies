@@ -21,7 +21,7 @@
     "node": "9.11.1"
   },
   "scripts": {
-    "start": "harp server --port 8000"
+    "start": "node server.js"
   },
   "devDependencies": {
     "bignumber.js": "^6.0.0",
