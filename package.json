@@ -32,6 +32,7 @@
     "truffle-hdwallet-provider": "0.0.3"
   },
   "dependencies": {
+    "express": "^4.16.4",
     "jsonfile": "^4.0.0",
     "web3": "^0.20.5",
     "zeppelin-solidity": "^1.7.0"
