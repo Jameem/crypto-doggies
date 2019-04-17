@@ -20,9 +20,6 @@
   "engines": {
     "node": "9.11.1"
   },
-  "scripts": {
-    "start": "npm run dev"
-  },
   "devDependencies": {
     "bignumber.js": "^6.0.0",
     "dotenv": "^5.0.0",
