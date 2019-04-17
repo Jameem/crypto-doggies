@@ -2,5 +2,7 @@
   "open": true,
   "server": {
     "baseDir": ["./src", "./build/contracts"]
-  }
+  },
+  port: process.env.PORT,
+  files: ['./**/*.{html,htm,css,js}']
 }
