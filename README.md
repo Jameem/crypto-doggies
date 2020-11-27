@@ -4,7 +4,7 @@ Crypto collectible ERC721 doggy tokens
 
 User can buy and sell doggy tokens on the ethereum blockchain.
 
-Smart contracts are developed in solidity, compiled by solc and deployed to Rinkeby network using web3.js. NodeJs is used on the server, ReactJs on the front-end and NextJs is used for routing. 
+Smart contracts are developed in solidity, compiled by solc and deployed to Rinkeby network using web3.js. Node.js is used on the server, React.js on the front-end and Next.js is used for routing. 
 
 ## Dependencies
 
