@@ -1,6 +1,6 @@
 # CryptoDoggies
 
-Crypto collectible ERC721 doggy tokens
+### Crypto collectible ERC721 doggy tokens
 
 User can buy and sell doggy tokens on the ethereum blockchain.
 
